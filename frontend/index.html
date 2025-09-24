@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITMS - Integrated Track Monitoring System</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-train"></i>
+                <h1>ITMS Dashboard</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="#monitoring" class="nav-link" data-section="monitoring">
+                    <i class="fas fa-eye"></i> Real-time Monitoring
+                </a>
+                <a href="#analytics" class="nav-link" data-section="analytics">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+                <a href="#reports" class="nav-link" data-section="reports">
+                    <i class="fas fa-file-alt"></i> Reports
+                </a>
+                <a href="#settings" class="nav-link" data-section="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+            <div class="header-actions">
+                <div class="system-status">
+                    <span class="status-indicator online"></span>
+                    <span class="status-text">System Online</span>
+                </div>
+                <button class="btn btn-primary" id="emergency-stop">
+                    <i class="fas fa-stop"></i> Emergency Stop
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="content-section active">
+            <div class="dashboard-grid">
+                <!-- System Overview Cards -->
+                <div class="card overview-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> System Overview</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-grid">
+                            <div class="metric">
+                                <div class="metric-value" id="train-speed">0</div>
+                                <div class="metric-label">Speed (km/h)</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="distance-traveled">0</div>
+                                <div class="metric-label">Distance (km)</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="session-time">00:00:00</div>
+                                <div class="metric-label">Session Time</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="data-rate">0</div>
+                                <div class="metric-label">Data Rate (MB/s)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Sensor Data -->
+                <div class="card sensor-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-microchip"></i> Sensor Status</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="sensor-grid">
+                            <div class="sensor-item">
+                                <div class="sensor-icon encoder">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="sensor-info">
+                                    <div class="sensor-name">Axle Encoder</div>
+                                    <div class="sensor-status online">Online</div>
+                                    <div class="sensor-value" id="encoder-position">0 pulses</div>
+                                </div>
+                            </div>
+                            <div class="sensor-item">
+                                <div class="sensor-icon imu">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="sensor-info">
+                                    <div class="sensor-name">IMU</div>
+                                    <div class="sensor-status online">Online</div>
+                                    <div class="sensor-value" id="imu-acceleration">0.0 g</div>
+                                </div>
+                            </div>
+                            <div class="sensor-item">
+                                <div class="sensor-icon camera">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div class="sensor-info">
+                                    <div class="sensor-name">Camera</div>
+                                    <div class="sensor-status online">Online</div>
+                                    <div class="sensor-value" id="camera-frames">0 frames</div>
+                                </div>
+                            </div>
+                            <div class="sensor-item">
+                                <div class="sensor-icon laser">
+                                    <i class="fas fa-bullseye"></i>
+                                </div>
+                                <div class="sensor-info">
+                                    <div class="sensor-name">Laser Profilometer</div>
+                                    <div class="sensor-status online">Online</div>
+                                    <div class="sensor-value" id="laser-distance">0.0 mm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Charts -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-line"></i> Real-time Data</h3>
+                        <div class="chart-controls">
+                            <select id="chart-timeframe">
+                                <option value="1m">Last 1 Minute</option>
+                                <option value="5m">Last 5 Minutes</option>
+                                <option value="15m">Last 15 Minutes</option>
+                                <option value="1h">Last 1 Hour</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <canvas id="realtime-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Track Map -->
+                <div class="card map-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-map"></i> Track Location</h3>
+                    </div>
+                    <div class="card-content">
+                        <div id="track-map"></div>
+                    </div>
+                </div>
+
+                <!-- Alerts and Notifications -->
+                <div class="card alerts-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Alerts</h3>
+                        <span class="alert-count" id="alert-count">0</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="alerts-list" id="alerts-list">
+                            <div class="alert-item info">
+                                <i class="fas fa-info-circle"></i>
+                                <span>System initialized successfully</span>
+                                <span class="alert-time">2 minutes ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Health -->
+                <div class="card health-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-heartbeat"></i> System Health</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="health-metrics">
+                            <div class="health-item">
+                                <div class="health-label">CPU Usage</div>
+                                <div class="health-bar">
+                                    <div class="health-fill" style="width: 45%"></div>
+                                </div>
+                                <div class="health-value">45%</div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-label">Memory Usage</div>
+                                <div class="health-bar">
+                                    <div class="health-fill" style="width: 62%"></div>
+                                </div>
+                                <div class="health-value">62%</div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-label">Storage</div>
+                                <div class="health-bar">
+                                    <div class="health-fill" style="width: 23%"></div>
+                                </div>
+                                <div class="health-value">23%</div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-label">Network</div>
+                                <div class="health-bar">
+                                    <div class="health-fill" style="width: 78%"></div>
+                                </div>
+                                <div class="health-value">78%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real-time Monitoring Section -->
+        <section id="monitoring" class="content-section">
+            <div class="monitoring-grid">
+                <div class="card video-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-video"></i> Live Camera Feed</h3>
+                        <div class="video-controls">
+                            <button class="btn btn-sm" id="record-btn">
+                                <i class="fas fa-record-vinyl"></i> Record
+                            </button>
+                            <button class="btn btn-sm" id="snapshot-btn">
+                                <i class="fas fa-camera"></i> Snapshot
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="video-container">
+                            <video id="live-video" autoplay muted>
+                                <source src="api/video/stream" type="video/mp4">
+                                Your browser does not support video streaming.
+                            </video>
+                            <div class="video-overlay">
+                                <div class="video-info">
+                                    <span id="video-timestamp">00:00:00</span>
+                                    <span id="video-fps">30 FPS</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card sensor-detail-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-area"></i> Sensor Details</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="sensor-tabs">
+                            <button class="tab-btn active" data-sensor="encoder">Encoder</button>
+                            <button class="tab-btn" data-sensor="imu">IMU</button>
+                            <button class="tab-btn" data-sensor="laser">Laser</button>
+                        </div>
+                        <div class="sensor-details">
+                            <div id="encoder-details" class="sensor-detail active">
+                                <canvas id="encoder-chart"></canvas>
+                            </div>
+                            <div id="imu-details" class="sensor-detail">
+                                <canvas id="imu-chart"></canvas>
+                            </div>
+                            <div id="laser-details" class="sensor-detail">
+                                <canvas id="laser-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics" class="content-section">
+            <div class="analytics-grid">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Track Analysis</h3>
+                        <div class="analytics-controls">
+                            <input type="date" id="analytics-date" class="form-control">
+                            <select id="analytics-metric" class="form-control">
+                                <option value="vibration">Vibration Analysis</option>
+                                <option value="geometry">Track Geometry</option>
+                                <option value="wear">Wear Analysis</option>
+                                <option value="defects">Defect Detection</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <canvas id="analytics-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card trends-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-trending-up"></i> Trends</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="trends-list">
+                            <div class="trend-item">
+                                <div class="trend-icon up">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <div class="trend-info">
+                                    <div class="trend-label">Track Vibration</div>
+                                    <div class="trend-value">+12% this week</div>
+                                </div>
+                            </div>
+                            <div class="trend-item">
+                                <div class="trend-icon down">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                                <div class="trend-info">
+                                    <div class="trend-label">Track Quality</div>
+                                    <div class="trend-value">-3% this week</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="content-section">
+            <div class="reports-grid">
+                <div class="card reports-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-alt"></i> Generate Reports</h3>
+                    </div>
+                    <div class="card-content">
+                        <form class="report-form">
+                            <div class="form-group">
+                                <label>Report Type</label>
+                                <select class="form-control" id="report-type">
+                                    <option value="daily">Daily Summary</option>
+                                    <option value="weekly">Weekly Analysis</option>
+                                    <option value="monthly">Monthly Report</option>
+                                    <option value="custom">Custom Period</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Date Range</label>
+                                <div class="date-range">
+                                    <input type="date" class="form-control" id="start-date">
+                                    <span>to</span>
+                                    <input type="date" class="form-control" id="end-date">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Include Data</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" checked> Sensor Data</label>
+                                    <label><input type="checkbox" checked> Images</label>
+                                    <label><input type="checkbox"> Analytics</label>
+                                    <label><input type="checkbox"> Alerts</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-download"></i> Generate Report
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card export-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-download"></i> Data Export</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="export-options">
+                            <button class="btn btn-secondary export-btn" data-format="csv">
+                                <i class="fas fa-file-csv"></i> Export CSV
+                            </button>
+                            <button class="btn btn-secondary export-btn" data-format="json">
+                                <i class="fas fa-file-code"></i> Export JSON
+                            </button>
+                            <button class="btn btn-secondary export-btn" data-format="hdf5">
+                                <i class="fas fa-database"></i> Export HDF5
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="content-section">
+            <div class="settings-grid">
+                <div class="card system-settings-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-cog"></i> System Settings</h3>
+                    </div>
+                    <div class="card-content">
+                        <form class="settings-form">
+                            <div class="form-group">
+                                <label>Sample Rate (Hz)</label>
+                                <input type="number" class="form-control" value="1000" min="100" max="10000">
+                            </div>
+                            <div class="form-group">
+                                <label>Camera Trigger Interval</label>
+                                <input type="number" class="form-control" value="100" min="1" max="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Data Retention (days)</label>
+                                <input type="number" class="form-control" value="30" min="1" max="365">
+                            </div>
+                            <div class="form-group">
+                                <label>Alert Thresholds</label>
+                                <div class="threshold-group">
+                                    <label>Vibration (g)</label>
+                                    <input type="number" class="form-control" value="2.0" step="0.1">
+                                    <label>Speed (km/h)</label>
+                                    <input type="number" class="form-control" value="200" step="10">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card user-settings-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-user"></i> User Settings</h3>
+                    </div>
+                    <div class="card-content">
+                        <form class="user-form">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" class="form-control" value="admin">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" value="admin@itms.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Notifications</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" checked> Email Alerts</label>
+                                    <label><input type="checkbox" checked> SMS Alerts</label>
+                                    <label><input type="checkbox"> Push Notifications</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <span>&copy; 2024 ITMS - Integrated Track Monitoring System</span>
+                <span>Version 1.0.0</span>
+            </div>
+            <div class="footer-links">
+                <a href="#help">Help</a>
+                <a href="#documentation">Documentation</a>
+                <a href="#support">Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/websocket.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>

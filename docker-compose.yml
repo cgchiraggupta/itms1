@@ -1,0 +1,109 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: itms-db
+    environment:
+      POSTGRES_USER: itms
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: itmsdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U itms -d itmsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - itms-network
+
+  # FastAPI Backend
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: itms-backend
+    environment:
+      DATABASE_URL: postgresql://itms:secret@db:5432/itmsdb
+      DEBUG: "true"
+      VIDEO_STORAGE_PATH: /app/storage/videos
+    volumes:
+      - ./backend:/app
+      - backend_storage:/app/storage
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - itms-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: itms-frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_WS_URL: ws://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - itms-network
+
+  # Redis for WebSocket scaling (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: itms-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - itms-network
+
+  # Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: itms-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - itms-network
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_storage:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  itms-network:
+    driver: bridge
