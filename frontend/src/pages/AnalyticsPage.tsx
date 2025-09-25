@@ -3,311 +3,272 @@ import { motion } from 'framer-motion'
 import { 
   BarChart3, 
   TrendingUp, 
-  TrendingDown, 
+  TrendingDown,
+  Activity,
   AlertTriangle,
-  CheckCircle,
   Clock,
   MapPin
 } from 'lucide-react'
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+interface AnalyticsData {
+  trackHealth: Array<{
+    date: string
+    health: number
+    defects: number
+  }>
+  defectTypes: Array<{
+    name: string
+    value: number
+    color: string
+  }>
+  performance: Array<{
+    metric: string
+    value: number
+    change: number
+    trend: 'up' | 'down'
+  }>
+}
 
 const AnalyticsPage: React.FC = () => {
-  const [selectedMetric, setSelectedMetric] = useState('vibration')
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [analyticsData, setAnalyticsData] = useState({
-    vibration: [],
-    geometry: [],
-    defects: [],
-    trends: []
-  })
+  const [data, setData] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [timeRange, setTimeRange] = useState('7d')
 
-  // Mock data for analytics
   useEffect(() => {
-    const generateMockData = () => {
-      const vibrationData = []
-      const geometryData = []
-      const defectsData = []
+    const loadData = async () => {
+      setLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      for (let i = 0; i < 24; i++) {
-        vibrationData.push({
-          hour: `${i}:00`,
-          value: Math.random() * 2,
-          threshold: 1.5
-        })
-        
-        geometryData.push({
-          chainage: i * 100,
-          gauge: 1.676 + (Math.random() - 0.5) * 0.02,
-          alignment: (Math.random() - 0.5) * 4,
-          level: (Math.random() - 0.5) * 2
-        })
-        
-        defectsData.push({
-          chainage: i * 100,
-          defects: Math.floor(Math.random() * 5),
-          severity: Math.floor(Math.random() * 4) + 1
-        })
-      }
-      
-      setAnalyticsData({
-        vibration: vibrationData,
-        geometry: geometryData,
-        defects: defectsData,
-        trends: [
-          { name: 'Track Vibration', change: 12, trend: 'up' },
-          { name: 'Track Quality', change: -3, trend: 'down' },
-          { name: 'Defect Count', change: 8, trend: 'up' },
-          { name: 'Maintenance Efficiency', change: 15, trend: 'up' }
+      setData({
+        trackHealth: [
+          { date: '2024-01-01', health: 95, defects: 2 },
+          { date: '2024-01-02', health: 93, defects: 3 },
+          { date: '2024-01-03', health: 97, defects: 1 },
+          { date: '2024-01-04', health: 94, defects: 4 },
+          { date: '2024-01-05', health: 96, defects: 2 },
+          { date: '2024-01-06', health: 98, defects: 1 },
+          { date: '2024-01-07', health: 95, defects: 3 }
+        ],
+        defectTypes: [
+          { name: 'Gauge Anomaly', value: 35, color: '#ef4444' },
+          { name: 'Rail Wear', value: 25, color: '#f59e0b' },
+          { name: 'Track Geometry', value: 20, color: '#3b82f6' },
+          { name: 'Surface Defects', value: 15, color: '#10b981' },
+          { name: 'Other', value: 5, color: '#6b7280' }
+        ],
+        performance: [
+          { metric: 'Detection Accuracy', value: 99.8, change: 0.2, trend: 'up' },
+          { metric: 'Response Time', value: 95, change: -5, trend: 'down' },
+          { metric: 'System Uptime', value: 99.9, change: 0.1, trend: 'up' },
+          { metric: 'False Positives', value: 2.1, change: -0.3, trend: 'down' }
         ]
       })
+      setLoading(false)
     }
-    
-    generateMockData()
-  }, [selectedDate])
 
-  const defectTypes = [
-    { name: 'Gauge Excess', value: 25, color: '#ef4444' },
-    { name: 'Alignment Fault', value: 20, color: '#f59e0b' },
-    { name: 'Rail Wear', value: 30, color: '#3b82f6' },
-    { name: 'Joint Defect', value: 15, color: '#10b981' },
-    { name: 'Other', value: 10, color: '#6b7280' }
-  ]
+    loadData()
+  }, [timeRange])
 
-  const severityDistribution = [
-    { name: 'Low', value: 40, color: '#10b981' },
-    { name: 'Medium', value: 35, color: '#f59e0b' },
-    { name: 'High', value: 20, color: '#ef4444' },
-    { name: 'Critical', value: 5, color: '#7c2d12' }
-  ]
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading analytics data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!data) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics</h1>
-          <p className="text-gray-600">Track condition analysis and trend monitoring</p>
-        </motion.div>
-
-        {/* Controls */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="card p-6 mb-8"
+          transition={{ duration: 0.6 }}
+          className="mb-8"
         >
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Analysis Date
-              </label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="form-input"
-              />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+                Analytics Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Track performance metrics and system analytics
+              </p>
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Metric Type
-              </label>
+            <div className="mt-4 sm:mt-0">
               <select
-                value={selectedMetric}
-                onChange={(e) => setSelectedMetric(e.target.value)}
-                className="form-input"
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="vibration">Vibration Analysis</option>
-                <option value="geometry">Track Geometry</option>
-                <option value="wear">Wear Analysis</option>
-                <option value="defects">Defect Detection</option>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
               </select>
             </div>
           </div>
         </motion.div>
 
-        {/* Trends Overview */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          {analyticsData.trends.map((trend, index) => (
-            <div key={index} className="card p-6">
+        {/* Performance Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {data.performance.map((metric, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{trend.name}</p>
-                  <p className={`text-2xl font-bold ${
-                    trend.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {trend.change > 0 ? '+' : ''}{trend.change}%
+                  <p className="text-sm font-medium text-gray-600 mb-1">
+                    {metric.metric}
                   </p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {metric.value}{metric.metric.includes('Time') ? 'ms' : '%'}
+                  </p>
+                  <div className="flex items-center mt-1">
+                    {metric.trend === 'up' ? (
+                      <TrendingUp className="w-4 h-4 text-green-600 mr-1" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 text-red-600 mr-1" />
+                    )}
+                    <span className={`text-sm ${
+                      metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {metric.change > 0 ? '+' : ''}{metric.change}
+                      {metric.metric.includes('Time') ? 'ms' : '%'}
+                    </span>
+                  </div>
                 </div>
-                <div className={`p-3 rounded-full ${
-                  trend.trend === 'up' ? 'bg-green-100' : 'bg-red-100'
-                }`}>
-                  {trend.trend === 'up' ? (
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  ) : (
-                    <TrendingDown className="h-6 w-6 text-red-600" />
-                  )}
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </motion.div>
+        </div>
 
-        {/* Main Analytics Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="card p-6 mb-8"
-        >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {selectedMetric === 'vibration' && 'Vibration Analysis'}
-            {selectedMetric === 'geometry' && 'Track Geometry'}
-            {selectedMetric === 'wear' && 'Wear Analysis'}
-            {selectedMetric === 'defects' && 'Defect Distribution'}
-          </h3>
-          <ResponsiveContainer width="100%" height={400}>
-            {selectedMetric === 'vibration' && (
-              <LineChart data={analyticsData.vibration}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="hour" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} />
-                <Line type="monotone" dataKey="threshold" stroke="#ef4444" strokeWidth={2} strokeDasharray="5 5" />
-              </LineChart>
-            )}
-            {selectedMetric === 'geometry' && (
-              <LineChart data={analyticsData.geometry}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="chainage" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="gauge" stroke="#3b82f6" strokeWidth={2} />
-                <Line type="monotone" dataKey="alignment" stroke="#10b981" strokeWidth={2} />
-                <Line type="monotone" dataKey="level" stroke="#f59e0b" strokeWidth={2} />
-              </LineChart>
-            )}
-            {selectedMetric === 'defects' && (
-              <BarChart data={analyticsData.defects}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="chainage" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="defects" fill="#ef4444" />
-              </BarChart>
-            )}
-          </ResponsiveContainer>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Defect Types Distribution */}
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Track Health Trend */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="card p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Defect Types</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={defectTypes}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {defectTypes.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Activity className="w-5 h-5 mr-2 text-green-600" />
+              Track Health Trend
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.trackHealth}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line 
+                    type="monotone" 
+                    dataKey="health" 
+                    stroke="#10b981" 
+                    strokeWidth={2}
+                    name="Health %"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </motion.div>
 
-          {/* Severity Distribution */}
+          {/* Defect Types Distribution */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="card p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
           >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Defect Severity</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={severityDistribution}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {severityDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
+              Defect Types Distribution
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.defectTypes}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {data.defectTypes.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </motion.div>
         </div>
 
-        {/* Key Insights */}
+        {/* Defects Over Time */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="card p-6 mt-8"
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Insights</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="h-6 w-6 text-yellow-500 mt-1" />
-              <div>
-                <h4 className="font-medium text-gray-900">High Vibration Alert</h4>
-                <p className="text-sm text-gray-600">Detected at chainage 1250m with 2.3g acceleration</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <CheckCircle className="h-6 w-6 text-green-500 mt-1" />
-              <div>
-                <h4 className="font-medium text-gray-900">Track Quality Good</h4>
-                <p className="text-sm text-gray-600">95% of measurements within acceptable limits</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <Clock className="h-6 w-6 text-blue-500 mt-1" />
-              <div>
-                <h4 className="font-medium text-gray-900">Maintenance Due</h4>
-                <p className="text-sm text-gray-600">Scheduled maintenance in 2 days at chainage 2000m</p>
-              </div>
-            </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <Clock className="w-5 h-5 mr-2 text-blue-600" />
+            Defects Detected Over Time
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data.trackHealth}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="defects" fill="#ef4444" name="Defects" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
+        {/* Summary Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
+        >
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-center">
+            <MapPin className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">2,500+ km</div>
+            <div className="text-sm text-gray-600">Track Monitored</div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-center">
+            <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">15,000+</div>
+            <div className="text-sm text-gray-600">Defects Detected</div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 text-center">
+            <Activity className="w-8 h-8 text-green-600 mx-auto mb-2" />
+            <div className="text-2xl font-bold text-gray-900">99.8%</div>
+            <div className="text-sm text-gray-600">System Accuracy</div>
           </div>
         </motion.div>
       </div>

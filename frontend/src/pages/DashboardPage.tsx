@@ -1,286 +1,497 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
-  Activity, 
-  Gauge, 
-  Camera, 
-  Zap, 
   MapPin, 
-  AlertTriangle,
+  Activity, 
+  AlertTriangle, 
   TrendingUp,
-  TrendingDown,
   Clock,
-  Database
+  Gauge,
+  Navigation,
+  Zap
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import EnhancedGPSMap from '../components/EnhancedGPSMap'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+interface DashboardData {
+  gpsData: {
+    latitude: number
+    longitude: number
+    altitude: number
+    accuracy: number
+    speed: number
+    heading: number
+    timestamp: string
+    chainage: number
+  }
+  defects: Array<{
+    location: number
+    defect_type: string
+    severity: number
+    gps_lat: number
+    gps_lng: number
+  }>
+  metrics: {
+    totalTrack: number
+    defectsDetected: number
+    accuracyRate: number
+    responseTime: number
+  }
+}
 
 const DashboardPage: React.FC = () => {
-  const [systemData, setSystemData] = useState({
-    trainSpeed: 0,
-    distanceTraveled: 0,
-    sessionTime: '00:00:00',
-    dataRate: 0,
-    encoderPosition: 0,
-    imuAcceleration: 0,
-    cameraFrames: 0,
-    laserDistance: 0
-  })
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const [chartData, setChartData] = useState([])
-  const [alerts, setAlerts] = useState([
-    { id: 1, type: 'info', message: 'System initialized successfully', time: '2 minutes ago' },
-    { id: 2, type: 'warning', message: 'High vibration detected at chainage 1250m', time: '5 minutes ago' }
-  ])
-
-  // Simulate real-time data updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSystemData(prev => ({
-        trainSpeed: Math.random() * 200,
-        distanceTraveled: prev.distanceTraveled + 0.1,
-        sessionTime: new Date().toLocaleTimeString(),
-        dataRate: Math.random() * 50,
-        encoderPosition: prev.encoderPosition + Math.floor(Math.random() * 10),
-        imuAcceleration: Math.random() * 2,
-        cameraFrames: prev.cameraFrames + 1,
-        laserDistance: 100 + Math.random() * 50
-      }))
-
-      // Update chart data
-      setChartData(prev => {
-        const newData = [...prev]
-        if (newData.length > 20) newData.shift()
-        newData.push({
-          time: new Date().toLocaleTimeString(),
-          vibration: Math.random() * 2,
-          gauge: 1.676 + Math.random() * 0.02,
-          acceleration: Math.random() * 1
-        })
-        return newData
+    // Simulate data loading
+    const loadData = async () => {
+      setLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      setData({
+        gpsData: {
+          latitude: 28.6139,
+          longitude: 77.209,
+          altitude: 216,
+          accuracy: 3,
+          speed: 45.5,
+          heading: 120,
+          timestamp: new Date().toISOString(),
+          chainage: 1250.5
+        },
+        defects: [
+          {
+            location: 1200,
+            defect_type: "gauge_anomaly",
+            severity: 2,
+            gps_lat: 28.614,
+            gps_lng: 77.2091
+          },
+          {
+            location: 1300,
+            defect_type: "rail_wear",
+            severity: 3,
+            gps_lat: 28.6142,
+            gps_lng: 77.2093
+          }
+        ],
+        metrics: {
+          totalTrack: 2500,
+          defectsDetected: 15,
+          accuracyRate: 99.8,
+          responseTime: 95
+        }
       })
-    }, 1000)
+      setLoading(false)
+    }
 
-    return () => clearInterval(interval)
+    loadData()
   }, [])
 
-  const sensors = [
+  if (!loading && data) {
+    return (
+      <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+        {/* Background blur effects */}
+        <div className="absolute top-20 right-10 w-72 h-72 rounded-full bg-blue-300 opacity-10 blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-40 left-10 w-80 h-80 rounded-full bg-green-300 opacity-10 blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+        
+        <div className="container mx-auto px-4 py-6 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col md:flex-row md:items-center md:justify-between mb-6"
+          >
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Train Monitoring Dashboard</h1>
+            <div className="mt-2 md:mt-0 flex items-center">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm"
+              >
+                <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                Live Monitoring
+              </motion.div>
+              <div className="ml-3 text-sm text-gray-500">
+                Last updated: {new Date().toLocaleTimeString()}
+              </div>
+            </div>
+          </motion.div>
+          
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-xl shadow-sm p-4"
+            >
+              <div className="flex items-center">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <Gauge className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-500">Current Speed</p>
+                  <p className="text-xl font-bold">{data.gpsData.speed} km/h</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-xl shadow-sm p-4"
+            >
+              <div className="flex items-center">
+                <div className="bg-green-100 p-2 rounded-lg">
+                  <Navigation className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-500">Chainage</p>
+                  <p className="text-xl font-bold">{data.gpsData.chainage} km</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-xl shadow-sm p-4"
+            >
+              <div className="flex items-center">
+                <div className="bg-red-100 p-2 rounded-lg">
+                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-500">Defects</p>
+                  <p className="text-xl font-bold">{data.defects.length}</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-xl shadow-sm p-4"
+            >
+              <div className="flex items-center">
+                <div className="bg-purple-100 p-2 rounded-lg">
+                  <Zap className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-gray-500">Response Time</p>
+                  <p className="text-xl font-bold">{data.metrics.responseTime} ms</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+          
+          {/* GPS and Status Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {/* GPS Map */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6 }}
+              className="lg:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden backdrop-blur-sm bg-white/90"
+            >
+              <div className="p-4 border-b border-gray-100">
+                <h2 className="text-lg font-semibold flex items-center">
+                  <MapPin className="h-5 w-5 text-blue-500 mr-2" />
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    Live GPS Tracking
+                  </motion.span>
+                </h2>
+              </div>
+              <div className="p-4">
+                <motion.div 
+                  whileHover={{ boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.1)" }}
+                  style={{ height: '400px', width: '100%' }} 
+                  className="rounded-lg overflow-hidden"
+                >
+                  <EnhancedGPSMap 
+                    gpsData={data.gpsData}
+                    defects={data.defects}
+                  />
+                </motion.div>
+              </div>
+            </motion.div>
+            
+            {/* Status Cards */}
+            <div className="lg:col-span-1">
+              <div className="grid grid-cols-1 gap-4">
+                {/* GPS Data */}
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-lg font-semibold">Current GPS Data</h2>
+                    <MapPin className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-600">Latitude:</span>
+                        <span className="font-medium">{data.gpsData.latitude.toFixed(6)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-600">Longitude:</span>
+                        <span className="font-medium">{data.gpsData.longitude.toFixed(6)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-600">Altitude:</span>
+                        <span className="font-medium">{data.gpsData.altitude} m</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-600">Speed:</span>
+                        <span className="font-medium">{data.gpsData.speed} km/h</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1 border-b border-gray-100">
+                        <span className="text-gray-600">Heading:</span>
+                        <span className="font-medium">{data.gpsData.heading}°</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-gray-600">Chainage:</span>
+                        <span className="font-medium">{data.gpsData.chainage} km</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* System Status */}
+                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-lg font-semibold">System Status</h2>
+                    <Activity className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center py-1">
+                        <div className="w-3 h-3 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                        <span className="text-gray-600">GPS Signal</span>
+                        <span className="ml-auto font-medium text-green-500">Strong</span>
+                      </div>
+                      <div className="flex items-center py-1">
+                        <div className="w-3 h-3 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                        <span className="text-gray-600">Data Connection</span>
+                        <span className="ml-auto font-medium text-green-500">Online</span>
+                      </div>
+                      <div className="flex items-center py-1">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
+                        <span className="text-gray-600">Battery</span>
+                        <span className="ml-auto font-medium text-yellow-500">75%</span>
+                      </div>
+                      <div className="flex items-center py-1">
+                        <div className="w-3 h-3 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                        <span className="text-gray-600">Sensors</span>
+                        <span className="ml-auto font-medium text-green-500">All Active</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading dashboard data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return null
+
+  const metricCards = [
     {
+      title: "Track Monitored",
+      value: `${data.metrics.totalTrack} km`,
+      icon: MapPin,
+      color: "blue",
+      change: "+2.5%"
+    },
+    {
+      title: "Defects Detected",
+      value: data.metrics.defectsDetected.toString(),
+      icon: AlertTriangle,
+      color: "red",
+      change: "+3"
+    },
+    {
+      title: "Accuracy Rate",
+      value: `${data.metrics.accuracyRate}%`,
       icon: Gauge,
-      name: 'Axle Encoder',
-      status: 'online',
-      value: `${systemData.encoderPosition} pulses`,
-      color: 'blue'
+      color: "green",
+      change: "+0.2%"
     },
     {
+      title: "Response Time",
+      value: `${data.metrics.responseTime}ms`,
       icon: Zap,
-      name: 'IMU',
-      status: 'online',
-      value: `${systemData.imuAcceleration.toFixed(1)} g`,
-      color: 'purple'
-    },
-    {
-      icon: Camera,
-      name: 'Camera',
-      status: 'online',
-      value: `${systemData.cameraFrames} frames`,
-      color: 'cyan'
-    },
-    {
-      icon: Activity,
-      name: 'Laser Profilometer',
-      status: 'online',
-      value: `${systemData.laserDistance.toFixed(1)} mm`,
-      color: 'green'
+      color: "yellow",
+      change: "-5ms"
     }
   ]
 
-  const healthMetrics = [
-    { label: 'CPU Usage', value: 45, color: 'green' },
-    { label: 'Memory Usage', value: 62, color: 'yellow' },
-    { label: 'Storage', value: 23, color: 'green' },
-    { label: 'Network', value: 78, color: 'red' }
-  ]
-
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">ITMS Dashboard</h1>
-          <p className="text-gray-600">Real-time track monitoring and system status</p>
-        </motion.div>
-
-        {/* System Overview Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          transition={{ duration: 0.6 }}
+          className="mb-8"
         >
-          <div className="card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Train Speed</p>
-                <p className="text-2xl font-bold text-gray-900">{systemData.trainSpeed.toFixed(1)} km/h</p>
-              </div>
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Activity className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            Track Monitoring Dashboard
+          </h1>
+          <p className="text-gray-600">
+            Real-time monitoring of railway track conditions and GPS tracking
+          </p>
+        </motion.div>
 
-          <div className="card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Distance Traveled</p>
-                <p className="text-2xl font-bold text-gray-900">{systemData.distanceTraveled.toFixed(1)} km</p>
-              </div>
-              <div className="p-3 bg-green-100 rounded-full">
-                <MapPin className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </div>
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {metricCards.map((metric, index) => {
+            const Icon = metric.icon
+            return (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="bg-white p-6 rounded-xl shadow-lg border border-gray-200"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">
+                      {metric.title}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {metric.value}
+                    </p>
+                    <p className="text-sm text-green-600 mt-1">
+                      {metric.change}
+                    </p>
+                  </div>
+                  <div className={`w-12 h-12 bg-${metric.color}-100 rounded-lg flex items-center justify-center`}>
+                    <Icon className={`w-6 h-6 text-${metric.color}-600`} />
+                  </div>
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
 
-          <div className="card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Session Time</p>
-                <p className="text-2xl font-bold text-gray-900">{systemData.sessionTime}</p>
+        {/* Current Status */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8"
+        >
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+            <Activity className="w-5 h-5 mr-2 text-green-600" />
+            Current Status
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600 mb-1">
+                {data.gpsData.speed} km/h
               </div>
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Clock className="h-6 w-6 text-purple-600" />
-              </div>
+              <div className="text-sm text-gray-600">Current Speed</div>
             </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Data Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{systemData.dataRate.toFixed(1)} MB/s</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600 mb-1">
+                {data.gpsData.chainage} km
               </div>
-              <div className="p-3 bg-orange-100 rounded-full">
-                <Database className="h-6 w-6 text-orange-600" />
+              <div className="text-sm text-gray-600">Chainage</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600 mb-1">
+                ±{data.gpsData.accuracy}m
               </div>
+              <div className="text-sm text-gray-600">GPS Accuracy</div>
             </div>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Sensor Status */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card p-6"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Sensor Status</h3>
-            <div className="space-y-4">
-              {sensors.map((sensor, index) => {
-                const Icon = sensor.icon
-                return (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg bg-${sensor.color}-100`}>
-                      <Icon className={`h-5 w-5 text-${sensor.color}-600`} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{sensor.name}</p>
-                      <p className="text-xs text-gray-500">{sensor.value}</p>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-green-600">Online</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </motion.div>
+        {/* Map Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
+        >
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+              <Navigation className="w-5 h-5 mr-2 text-blue-600" />
+              Real-time GPS Tracking
+            </h2>
+          </div>
+          <div className="h-[600px]">
+            <EnhancedGPSMap
+              gpsData={data.gpsData}
+              defects={data.defects}
+            />
+          </div>
+        </motion.div>
 
-          {/* Real-time Chart */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="lg:col-span-2 card p-6"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Real-time Data</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="vibration" stroke="#3b82f6" strokeWidth={2} />
-                <Line type="monotone" dataKey="gauge" stroke="#10b981" strokeWidth={2} />
-                <Line type="monotone" dataKey="acceleration" stroke="#f59e0b" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </motion.div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Alerts */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-            className="card p-6"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Alerts</h3>
-              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {alerts.length}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {alerts.map((alert) => (
-                <div key={alert.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <AlertTriangle className={`h-5 w-5 mt-0.5 ${
-                    alert.type === 'warning' ? 'text-yellow-500' : 'text-blue-500'
+        {/* Recent Defects */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mt-8"
+        >
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2 text-red-600" />
+            Recent Defects
+          </h2>
+          <div className="space-y-4">
+            {data.defects.map((defect, index) => (
+              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-3 h-3 rounded-full ${
+                    defect.severity === 1 ? 'bg-green-500' :
+                    defect.severity === 2 ? 'bg-yellow-500' :
+                    defect.severity === 3 ? 'bg-orange-500' : 'bg-red-500'
                   }`} />
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{alert.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{alert.time}</p>
+                  <div>
+                    <div className="font-medium text-gray-900">
+                      {defect.defect_type.replace('_', ' ').toUpperCase()}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Location: {defect.location} km
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* System Health */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="card p-6"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
-            <div className="space-y-4">
-              {healthMetrics.map((metric, index) => (
-                <div key={index}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">{metric.label}</span>
-                    <span className="font-medium">{metric.value}%</span>
+                <div className="text-right">
+                  <div className="text-sm font-medium text-gray-900">
+                    Severity {defect.severity}/4
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${
-                        metric.value < 50 ? 'bg-green-500' : 
-                        metric.value < 80 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${metric.value}%` }}
-                    ></div>
+                  <div className="text-xs text-gray-500">
+                    {new Date().toLocaleTimeString()}
                   </div>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
   )

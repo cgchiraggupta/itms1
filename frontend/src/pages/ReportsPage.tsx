@@ -1,355 +1,301 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   FileText, 
   Download, 
-  Calendar, 
+  Calendar,
   Filter,
-  FileCsv,
-  FileCode,
-  Database,
+  Search,
+  AlertTriangle,
   CheckCircle,
   Clock,
-  AlertTriangle
+  MapPin
 } from 'lucide-react'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+interface Report {
+  id: string
+  title: string
+  type: 'defect' | 'maintenance' | 'inspection' | 'summary'
+  status: 'completed' | 'pending' | 'in_progress'
+  date: string
+  location: string
+  severity?: number
+  description: string
+}
 
 const ReportsPage: React.FC = () => {
-  const [reportType, setReportType] = useState('daily')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
-  const [includeData, setIncludeData] = useState({
-    sensorData: true,
-    images: true,
-    analytics: false,
-    alerts: false
-  })
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [reports, setReports] = useState<Report[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
 
-  const handleGenerateReport = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsGenerating(true)
-    
-    // Simulate report generation
-    setTimeout(() => {
-      setIsGenerating(false)
-      // Here you would typically trigger the actual report generation
-    }, 2000)
-  }
-
-  const handleExport = (format: string) => {
-    // Simulate export functionality
-    console.log(`Exporting data in ${format} format`)
-  }
-
-  const recentReports = [
-    {
-      id: 1,
-      name: 'Daily Summary - 2024-01-15',
-      type: 'Daily Summary',
-      generated: '2024-01-15 18:30:00',
-      size: '2.3 MB',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      name: 'Weekly Analysis - Week 3',
-      type: 'Weekly Analysis',
-      generated: '2024-01-14 16:45:00',
-      size: '15.7 MB',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      name: 'Monthly Report - January 2024',
-      type: 'Monthly Report',
-      generated: '2024-01-13 14:20:00',
-      size: '89.2 MB',
-      status: 'completed'
-    },
-    {
-      id: 4,
-      name: 'Custom Report - Defect Analysis',
-      type: 'Custom Report',
-      generated: '2024-01-12 11:15:00',
-      size: '5.1 MB',
-      status: 'completed'
+  useEffect(() => {
+    const loadReports = async () => {
+      setLoading(true)
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      setReports([
+        {
+          id: '1',
+          title: 'Track Inspection Report - Section A',
+          type: 'inspection',
+          status: 'completed',
+          date: '2024-01-15',
+          location: 'Chainage 1200-1250 km',
+          description: 'Comprehensive track inspection completed with no critical issues found.'
+        },
+        {
+          id: '2',
+          title: 'Gauge Anomaly Detection',
+          type: 'defect',
+          status: 'completed',
+          date: '2024-01-14',
+          location: 'Chainage 1180 km',
+          severity: 2,
+          description: 'Minor gauge anomaly detected and documented for maintenance scheduling.'
+        },
+        {
+          id: '3',
+          title: 'Monthly Maintenance Summary',
+          type: 'summary',
+          status: 'completed',
+          date: '2024-01-10',
+          location: 'Entire Network',
+          description: 'Monthly summary of all maintenance activities and system performance.'
+        },
+        {
+          id: '4',
+          title: 'Rail Wear Analysis',
+          type: 'defect',
+          status: 'in_progress',
+          date: '2024-01-16',
+          location: 'Chainage 1300 km',
+          severity: 3,
+          description: 'Rail wear analysis in progress, preliminary results show moderate wear.'
+        },
+        {
+          id: '5',
+          title: 'Emergency Maintenance Report',
+          type: 'maintenance',
+          status: 'pending',
+          date: '2024-01-17',
+          location: 'Chainage 1150 km',
+          description: 'Emergency maintenance required due to critical track condition.'
+        }
+      ])
+      setLoading(false)
     }
-  ]
+
+    loadReports()
+  }, [])
+
+  const filteredReports = reports.filter(report => {
+    const matchesSearch = report.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         report.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesType = filterType === 'all' || report.type === filterType
+    const matchesStatus = filterStatus === 'all' || report.status === filterStatus
+    
+    return matchesSearch && matchesType && matchesStatus
+  })
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-600" />
+      case 'in_progress':
+        return <Clock className="w-4 h-4 text-yellow-600" />
+      case 'pending':
+        return <AlertTriangle className="w-4 h-4 text-red-600" />
+      default:
+        return <Clock className="w-4 h-4 text-gray-600" />
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      case 'in_progress':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'pending':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'defect':
+        return 'bg-red-100 text-red-800'
+      case 'maintenance':
+        return 'bg-blue-100 text-blue-800'
+      case 'inspection':
+        return 'bg-green-100 text-green-800'
+      case 'summary':
+        return 'bg-purple-100 text-purple-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading reports...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>
-          <p className="text-gray-600">Generate and export track monitoring reports</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
+            Reports & Documentation
+          </h1>
+          <p className="text-gray-600">
+            View and manage all system reports, inspections, and maintenance records
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Report Generation */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="card p-6"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Generate Report</h3>
-            <form onSubmit={handleGenerateReport} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Report Type
-                </label>
-                <select
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
-                  className="form-input"
-                >
-                  <option value="daily">Daily Summary</option>
-                  <option value="weekly">Weekly Analysis</option>
-                  <option value="monthly">Monthly Report</option>
-                  <option value="custom">Custom Period</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date Range
-                </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="form-input"
-                      placeholder="Start Date"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="form-input"
-                      placeholder="End Date"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Include Data
-                </label>
-                <div className="space-y-2">
-                  {Object.entries(includeData).map(([key, value]) => (
-                    <label key={key} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={value}
-                        onChange={(e) => setIncludeData(prev => ({
-                          ...prev,
-                          [key]: e.target.checked
-                        }))}
-                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700 capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={isGenerating}
-                className="btn btn-primary w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="loading-spinner w-4 h-4 mr-2"></div>
-                    Generating Report...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Report
-                  </>
-                )}
-              </button>
-            </form>
-          </motion.div>
-
-          {/* Data Export */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card p-6"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Data Export</h3>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-3">
-                <button
-                  onClick={() => handleExport('csv')}
-                  className="btn btn-secondary justify-start"
-                >
-                  <FileCsv className="h-4 w-4 mr-2" />
-                  Export CSV
-                </button>
-                <button
-                  onClick={() => handleExport('json')}
-                  className="btn btn-secondary justify-start"
-                >
-                  <FileCode className="h-4 w-4 mr-2" />
-                  Export JSON
-                </button>
-                <button
-                  onClick={() => handleExport('hdf5')}
-                  className="btn btn-secondary justify-start"
-                >
-                  <Database className="h-4 w-4 mr-2" />
-                  Export HDF5
-                </button>
-              </div>
-
-              <div className="border-t pt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Export Options</h4>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="rounded border-gray-300 text-primary-600" defaultChecked />
-                    <span className="ml-2 text-sm text-gray-700">Include metadata</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="checkbox" className="rounded border-gray-300 text-primary-600" defaultChecked />
-                    <span className="ml-2 text-sm text-gray-700">Compress files</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="checkbox" className="rounded border-gray-300 text-primary-600" />
-                    <span className="ml-2 text-sm text-gray-700">Include images</span>
-                  </label>
-                </div>
-              </div>
+        {/* Filters and Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 mb-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search reports..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
-          </motion.div>
+
+            {/* Type Filter */}
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Types</option>
+              <option value="defect">Defects</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="inspection">Inspections</option>
+              <option value="summary">Summaries</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Status</option>
+              <option value="completed">Completed</option>
+              <option value="in_progress">In Progress</option>
+              <option value="pending">Pending</option>
+            </select>
+
+            {/* Export Button */}
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Reports List */}
+        <div className="space-y-4">
+          {filteredReports.map((report, index) => (
+            <motion.div
+              key={report.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-shadow"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {report.title}
+                    </h3>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(report.type)}`}>
+                      {report.type.charAt(0).toUpperCase() + report.type.slice(1)}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                      {report.status.replace('_', ' ').charAt(0).toUpperCase() + report.status.replace('_', ' ').slice(1)}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-600 mb-3">
+                    {report.description}
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      {new Date(report.date).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {report.location}
+                    </div>
+                    {report.severity && (
+                      <div className="flex items-center">
+                        <AlertTriangle className="w-4 h-4 mr-1" />
+                        Severity: {report.severity}/4
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3 mt-4 lg:mt-0">
+                  {getStatusIcon(report.status)}
+                  <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    View
+                  </button>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Recent Reports */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="card p-6 mt-8"
-        >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Reports</h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Report Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Generated
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Size
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recentReports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{report.name}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="badge badge-primary">{report.type}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {report.generated}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {report.size}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="flex items-center">
-                        <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
-                        <span className="text-sm text-green-600">Completed</span>
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-primary-600 hover:text-primary-900 mr-3">
-                        <Download className="h-4 w-4" />
-                      </button>
-                      <button className="text-gray-600 hover:text-gray-900">
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-
-        {/* Report Statistics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8"
-        >
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <FileText className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Reports</p>
-                <p className="text-2xl font-bold text-gray-900">24</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">22</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <Clock className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-2xl font-bold text-gray-900">2</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+        {filteredReports.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12"
+          >
+            <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No reports found</h3>
+            <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+          </motion.div>
+        )}
       </div>
     </div>
   )

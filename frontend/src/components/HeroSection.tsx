@@ -1,161 +1,172 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Button } from './ui/button'
-import { ArrowDown, Play, Eye, Wrench, MapPin, Activity, Shield } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { 
+  MapPin, 
+  Activity, 
+  Shield, 
+  Camera, 
+  Zap, 
+  Target,
+  ArrowRight,
+  Play,
+  Eye
+} from 'lucide-react'
 
 const HeroSection: React.FC = () => {
+  const features = [
+    { icon: MapPin, text: 'Real-time GPS Tracking' },
+    { icon: Activity, text: 'Live Monitoring' },
+    { icon: Shield, text: 'Safety First' },
+    { icon: Camera, text: 'AI-Powered Vision' },
+    { icon: Zap, text: 'High-Speed Processing' },
+    { icon: Target, text: 'Precision Measurement' }
+  ]
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background with Railway Theme */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-orange-600">
-        <div className="absolute inset-0 bg-black/40"></div>
-        
-        {/* Animated Railway Track Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/4 left-0 w-full h-1 bg-white transform -skew-y-1"></div>
-          <div className="absolute top-1/2 left-0 w-full h-1 bg-white transform skew-y-1"></div>
-          <div className="absolute top-3/4 left-0 w-full h-1 bg-white transform -skew-y-1"></div>
-        </div>
+    <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="w-full h-full bg-gradient-to-br from-blue-500/10 to-blue-800/10"></div>
       </div>
       
-      {/* Animated Overlay Elements */}
-      <div className="absolute inset-0">
-        <motion.div 
-          className="absolute top-20 left-10 w-2 h-2 bg-orange-400 rounded-full"
-          animate={{ 
-            scale: [1, 1.5, 1],
-            opacity: [0.5, 1, 0.5]
-          }}
-          transition={{ 
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div 
-          className="absolute top-40 right-20 w-3 h-3 bg-blue-400 rounded-full"
-          animate={{ 
-            y: [-10, 10, -10],
-            opacity: [0.7, 1, 0.7]
-          }}
-          transition={{ 
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div 
-          className="absolute bottom-32 left-20 w-2 h-2 bg-orange-400 rounded-full"
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.6, 1, 0.6]
-          }}
-          transition={{ 
-            duration: 2.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
-          }}
-        />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center lg:text-left"
+          >
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+            >
+              Advanced{' '}
+              <span className="text-yellow-400">Track Monitoring</span>{' '}
+              System
+            </motion.h1>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-2xl mx-auto lg:mx-0"
+            >
+              Indigenous contactless railway track monitoring with real-time GPS tracking, 
+              AI-powered analysis, and comprehensive safety features.
+            </motion.p>
+
+            {/* Feature Pills */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="flex flex-wrap gap-3 justify-center lg:justify-start mb-8"
+            >
+              {features.map((feature, index) => {
+                const Icon = feature.icon
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                    className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{feature.text}</span>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+
+            {/* CTA Buttons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.0 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+            >
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center justify-center px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 group"
+              >
+                <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                View Dashboard
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
+              <Link
+                to="/analytics"
+                className="inline-flex items-center justify-center px-8 py-4 bg-white/20 hover:bg-white/30 text-white font-semibold rounded-lg border border-white/30 hover:border-white/50 transition-all duration-300 group backdrop-blur-sm"
+              >
+                <Eye className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                View Analytics
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          {/* Right Content - Stats */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="grid grid-cols-2 gap-6"
+          >
+            {[
+              { label: 'Track Monitored', value: '2,500+ km', color: 'bg-yellow-500' },
+              { label: 'Defects Detected', value: '15,000+', color: 'bg-red-500' },
+              { label: 'Accuracy Rate', value: '99.8%', color: 'bg-green-500' },
+              { label: 'Response Time', value: '< 100ms', color: 'bg-blue-500' }
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20"
+              >
+                <div className={`w-12 h-12 ${stat.color} rounded-full mx-auto mb-4 flex items-center justify-center`}>
+                  <span className="text-white font-bold text-lg">{stat.value}</span>
+                </div>
+                <p className="text-blue-100 text-sm font-medium">{stat.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            <span className="drop-shadow-2xl">Indigenous Contactless</span>
-            <br />
-            <span className="bg-gradient-to-r from-orange-400 to-yellow-400 bg-clip-text text-transparent drop-shadow-2xl">
-              Track Monitoring
-            </span>
-          </h1>
-          
-          <motion.p 
-            className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-          >
-            Smart, Contactless, Real-Time Railway Track Monitoring System
-            <br />
-            <span className="text-orange-300 font-semibold">Built for Indian Railways</span>
-          </motion.p>
-          
-          <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.6 }}
-          >
-            <Button 
-              size="lg" 
-              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
-            >
-              <Eye className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              View Prototype
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-900 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
-            >
-              <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              Try Demo
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="bg-white/10 border-white/30 text-white hover:bg-white hover:text-blue-900 px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 group"
-            >
-              <Wrench className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              Explore Features
-            </Button>
-          </motion.div>
-        </motion.div>
-        
-        {/* Feature Highlights */}
-        <motion.div 
-          className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.9 }}
-        >
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-              <MapPin className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-white font-semibold text-lg mb-2">Real-time GPS</h3>
-            <p className="text-white/80 text-sm">Precise location tracking with centimeter accuracy</p>
-          </div>
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-              <Activity className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-white font-semibold text-lg mb-2">Live Monitoring</h3>
-            <p className="text-white/80 text-sm">Continuous track condition assessment</p>
-          </div>
-          <div className="text-center">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-              <Shield className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-white font-semibold text-lg mb-2">Safety First</h3>
-            <p className="text-white/80 text-sm">Proactive defect detection and alerts</p>
-          </div>
-        </motion.div>
-        
-        {/* Scroll Indicator */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ArrowDown className="w-6 h-6 text-white/70" />
-        </motion.div>
-      </div>
+      {/* Floating Elements */}
+      <motion.div
+        animate={{ 
+          y: [0, -20, 0],
+          rotate: [0, 5, 0]
+        }}
+        transition={{ 
+          duration: 6,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="absolute top-20 right-20 w-20 h-20 bg-yellow-400/20 rounded-full blur-xl hidden lg:block"
+      />
+      
+      <motion.div
+        animate={{ 
+          y: [0, 20, 0],
+          rotate: [0, -5, 0]
+        }}
+        transition={{ 
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="absolute bottom-20 left-20 w-16 h-16 bg-white/20 rounded-full blur-xl hidden lg:block"
+      />
     </section>
   )
 }

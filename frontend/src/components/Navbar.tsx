@@ -1,141 +1,153 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
-  Train, 
   Menu, 
   X, 
+  MapPin, 
   BarChart3, 
   FileText, 
-  Settings, 
-  Home,
-  Activity,
-  Cpu
+  Settings,
+  Train,
+  Bell
 } from 'lucide-react'
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const location = useLocation()
 
+  // Handle scroll effect for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 10) {
+        setScrolled(true)
+      } else {
+        setScrolled(false)
+      }
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   const navigation = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Dashboard', href: '/dashboard', icon: Activity },
-    { name: 'Hardware Control', href: '/enhanced', icon: Cpu },
+    { name: 'Dashboard', href: '/dashboard', icon: MapPin },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Reports', href: '/reports', icon: FileText },
     { name: 'Settings', href: '/settings', icon: Settings },
   ]
 
-  const isActive = (path: string) => location.pathname === path
-
   return (
-    <nav className="bg-white shadow-medium border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <motion.div
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.5 }}
-                className="flex-shrink-0"
-              >
-                <Train className="h-8 w-8 text-blue-600" />
-              </motion.div>
-              <span className="text-xl font-bold text-gray-900">ITMS</span>
-            </Link>
-          </div>
+    <motion.nav 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-white/80 backdrop-blur-md'}`}
+    >
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        {/* Logo */}
+        <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+          <Link to="/" className="flex items-center">
+            <Train size={32} className="text-blue-600 mr-3" />
+            <span className="text-2xl font-bold text-blue-600 tracking-tight">ITMS</span>
+          </Link>
+        </motion.div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              return (
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center space-x-6">
+          {navigation.map((item, index) => {
+            const Icon = item.icon
+            const isActive = location.pathname === item.href
+            return (
+              <motion.div
+                key={item.name}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.3 }}
+                whileHover={{ scale: 1.05 }}
+              >
                 <Link
-                  key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                    isActive(item.href)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  className={`flex items-center px-3 py-2 rounded-lg transition-all duration-200 hover:bg-blue-50 ${
+                    isActive 
+                      ? 'text-blue-600 font-medium bg-blue-50' 
+                      : 'text-gray-700 hover:text-blue-600'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.name}</span>
+                  <Icon size={18} className="mr-2" />
+                  {item.name}
                 </Link>
-              )
-            })}
-          </div>
-
-          {/* System Status */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-gray-600">System Online</span>
-            </div>
-            <button className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
-              Emergency Stop
-            </button>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-            >
-              {isOpen ? (
-                <X className="block h-6 w-6" />
-              ) : (
-                <Menu className="block h-6 w-6" />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      <motion.div
-        initial={false}
-        animate={{ height: isOpen ? 'auto' : 0 }}
-        transition={{ duration: 0.3 }}
-        className="md:hidden overflow-hidden"
-      >
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50 border-t border-gray-200">
-          {navigation.map((item) => {
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                  isActive(item.href)
-                    ? 'text-blue-600 bg-blue-100'
-                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span>{item.name}</span>
-              </Link>
+              </motion.div>
             )
           })}
           
-          {/* Mobile System Status */}
-          <div className="px-3 py-2 border-t border-gray-200 mt-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-gray-600">System Online</span>
-              </div>
-              <button className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
-                Emergency Stop
-              </button>
-            </div>
-          </div>
+          {/* Notification button */}
+          <motion.button 
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-full hover:bg-gray-100 relative"
+          >
+            <Bell size={20} className="text-gray-600" />
+            <motion.span 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"
+            ></motion.span>
+          </motion.button>
         </div>
-      </motion.div>
-    </nav>
+
+        {/* Mobile menu button */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
+        >
+          {isOpen ? <X size={24} className="text-gray-700" /> : <Menu size={24} className="text-gray-700" />}
+        </motion.button>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="md:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-t border-gray-100"
+        >
+          <div className="container mx-auto px-4 py-2">
+            {navigation.map((item, index) => {
+              const Icon = item.icon
+              const isActive = location.pathname === item.href
+              return (
+                <motion.div
+                  key={item.name}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.2 }}
+                >
+                  <Link
+                    to={item.href}
+                    className={`flex items-center py-3 px-4 rounded-lg my-1 ${
+                      isActive 
+                        ? 'bg-blue-50 text-blue-600 font-medium' 
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <Icon size={18} className="mr-3" />
+                    {item.name}
+                  </Link>
+                </motion.div>
+              )
+            })}
+          </div>
+         </motion.div>
+       )}
+    </motion.nav>
   )
 }
 
