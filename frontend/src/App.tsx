@@ -11,6 +11,7 @@ import LoadingSpinner from './components/LoadingSpinner'
 
 // Pages
 import HomePage from './pages/HomePage'
+import LandingPage from './pages/LandingPage'
 import DashboardPage from './pages/DashboardPage'
 import EnhancedDashboard from './pages/EnhancedDashboard'
 import TestPage from './pages/TestPage'
@@ -42,7 +43,8 @@ const App: React.FC = () => {
           
           <main className="flex-1">
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<HomePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/enhanced" element={<EnhancedDashboard />} />
               <Route path="/test" element={<TestPage />} />

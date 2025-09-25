@@ -67,7 +67,7 @@ class Measurement(SQLModel, table=True):
     value: float = Field(description="Measured value")
     sensor_id: str = Field(description="ID of the sensor that made the measurement")
     quality: Optional[float] = Field(default=None, description="Data quality score (0-1)")
-    metadata: Optional[str] = Field(default=None, description="Additional sensor metadata as JSON")
+    sensor_metadata: Optional[str] = Field(default=None, description="Additional sensor metadata as JSON")
     
     # Relationships
     defects: List["DefectLog"] = Relationship(back_populates="measurement")
@@ -134,7 +134,7 @@ class MeasurementCreate(SQLModel):
     value: float
     sensor_id: str
     quality: Optional[float] = None
-    metadata: Optional[str] = None
+    sensor_metadata: Optional[str] = None
 
 class MeasurementResponse(SQLModel):
     """Schema for measurement API responses"""
@@ -145,7 +145,7 @@ class MeasurementResponse(SQLModel):
     value: float
     sensor_id: str
     quality: Optional[float] = None
-    metadata: Optional[str] = None
+    sensor_metadata: Optional[str] = None
 
 class DefectCreate(SQLModel):
     """Schema for creating new defects"""

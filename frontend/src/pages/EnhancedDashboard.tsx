@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import HardwareControl from '../components/HardwareControl'
-import GPSMap from '../components/GPSMap'
+import EnhancedGPSMap from '../components/EnhancedGPSMap'
 import CameraInterface from '../components/CameraInterface'
 import { 
   Activity, 
@@ -288,7 +288,7 @@ const EnhancedDashboard: React.FC = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <GPSMap
+            <EnhancedGPSMap
               gpsData={latestGPS ? {
                 latitude: latestGPS.latitude!,
                 longitude: latestGPS.longitude!,
