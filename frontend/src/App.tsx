@@ -12,6 +12,8 @@ import LoadingSpinner from './components/LoadingSpinner'
 // Pages
 import HomePage from './pages/HomePage'
 import DashboardPage from './pages/DashboardPage'
+import EnhancedDashboard from './pages/EnhancedDashboard'
+import TestPage from './pages/TestPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import ReportsPage from './pages/ReportsPage'
 import SettingsPage from './pages/SettingsPage'
@@ -42,6 +44,8 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/enhanced" element={<EnhancedDashboard />} />
+              <Route path="/test" element={<TestPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />

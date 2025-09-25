@@ -9,7 +9,8 @@ import {
   FileText, 
   Settings, 
   Home,
-  Activity
+  Activity,
+  Cpu
 } from 'lucide-react'
 
 const Navbar: React.FC = () => {
@@ -19,6 +20,7 @@ const Navbar: React.FC = () => {
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Dashboard', href: '/dashboard', icon: Activity },
+    { name: 'Hardware Control', href: '/enhanced', icon: Cpu },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Reports', href: '/reports', icon: FileText },
     { name: 'Settings', href: '/settings', icon: Settings },
@@ -38,7 +40,7 @@ const Navbar: React.FC = () => {
                 transition={{ duration: 0.5 }}
                 className="flex-shrink-0"
               >
-                <Train className="h-8 w-8 text-primary-600" />
+                <Train className="h-8 w-8 text-blue-600" />
               </motion.div>
               <span className="text-xl font-bold text-gray-900">ITMS</span>
             </Link>
@@ -54,8 +56,8 @@ const Navbar: React.FC = () => {
                   to={item.href}
                   className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                     isActive(item.href)
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -68,10 +70,10 @@ const Navbar: React.FC = () => {
           {/* System Status */}
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className="status-online animate-pulse"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-gray-600">System Online</span>
             </div>
-            <button className="btn btn-error btn-sm">
+            <button className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
               Emergency Stop
             </button>
           </div>
@@ -80,7 +82,7 @@ const Navbar: React.FC = () => {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
             >
               {isOpen ? (
                 <X className="block h-6 w-6" />
@@ -109,8 +111,8 @@ const Navbar: React.FC = () => {
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
                   isActive(item.href)
-                    ? 'text-primary-600 bg-primary-100'
-                    : 'text-gray-600 hover:text-primary-600 hover:bg-gray-100'
+                    ? 'text-blue-600 bg-blue-100'
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
                 }`}
               >
                 <Icon className="h-5 w-5" />
@@ -123,10 +125,10 @@ const Navbar: React.FC = () => {
           <div className="px-3 py-2 border-t border-gray-200 mt-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="status-online animate-pulse"></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                 <span className="text-sm text-gray-600">System Online</span>
               </div>
-              <button className="btn btn-error btn-sm">
+              <button className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700">
                 Emergency Stop
               </button>
             </div>
